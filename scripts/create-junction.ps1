@@ -1,6 +1,15 @@
 param (
-	[Parameter(Mandatory=$true)][string]$Path
+	# The path where the junction will be created
+	[Parameter(Mandatory=$false)][string]$Path
+	# The target path for the junction
+	,[Parameter(Mandatory=$false)][string]$Target
+	# The name of the junction
+	,[Parameter(Mandatory=$false)][string]$Name
 )
+
+if (-not $Path) {
+	$Path = (Get-Location).Path
+}
 
 Add-Type -AssemblyName System.Windows.Forms
 
@@ -56,18 +65,22 @@ Function Get-FolderName
 
 Write-Host "Creating junction in $Path"
 
-$name = Read-Host -Prompt "Junction Name"
+if (-not $Name) {
+	$Name = Read-Host -Prompt "Junction Name"
+}
 
-if ($name.Length -le 0) {
+if ($Name.Length -le 0) {
 	Write-Host "No name provided. Exiting."
 	exit
 }
 
-$target = Get-FolderName "$Path"
+if (-not $Target) {
+	$Target = Get-FolderName "$Path" -Description "Select the target for the junction"
+}
 
-if ($target.Length -le 0) {
+if ($Target.Length -le 0) {
 	Write-Host "No target provided. Exiting."
 	exit
 }
 
-New-Item -ItemType Junction -Target "$target" -Name "$name" -Path "$Path"
+New-Item -ItemType Junction -Target "$Target" -Name "$Name" -Path "$Path"
